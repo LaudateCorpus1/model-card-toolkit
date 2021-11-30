@@ -8,7 +8,7 @@
 * Added `model_card_toolkit.utils.tfx_util.annotate_eval_result_metrics()`. This function appends `PerformanceMetrics` to a `ModelCard` based on a `tfma.EvalResult`.
 * Added `ConfidenceInterval` class for `PerformanceMetric`s.
 * Add `model_card.model_details.path` field.
-* Add `source` arg to ModelCardToolkit, allowing ModelCards to be populated with TFMA and TFDV outputs even without MLMD.
+* Add `model_card_toolkit.util.source` module, containing config options to populate a ModelCard even without MLMD.
 * Add `input_format_map` and `output_format_map` fields. These render inputs and outputs in tabular form..
 
 ## Bug fixes and other changes
@@ -16,6 +16,7 @@
 * `model_card.quantitative_analysis.performance_metrics` is now populated when a `tfma.EvalResult` is found in MLMD store.
 * `export_format()` and `update_model_card()` now accept `model_card_pb2.ModelCard`'s, in addition to `model_card.ModelCard`'s.
 * Add `tfx_util.read_stats_protos()`, which returns dataset stats protos for all splits in the provided directory.
+* Add `tfx_util.filter_metrics()` to facilitate filtering out unwanted TFMA metrics in model cards.
 
 ## Breaking changes and Deprecations
 
