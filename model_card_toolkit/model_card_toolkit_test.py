@@ -25,6 +25,7 @@ from model_card_toolkit import model_card
 from model_card_toolkit import model_card_toolkit
 from model_card_toolkit.proto import model_card_pb2
 from model_card_toolkit.utils import graphics
+from model_card_toolkit.utils import source as src
 from model_card_toolkit.utils.testdata import testdata_utils
 
 import tensorflow_model_analysis as tfma
@@ -209,9 +210,11 @@ class ModelCardToolkitTest(
     mct_dir = os.path.join(self.tmpdir, 'mct')
     mct = model_card_toolkit.ModelCardToolkit(
         output_dir=mct_dir,
-        source=model_card_toolkit.Source(
-            eval_result_paths=[tfma_path],
-            dataset_statistics_paths=[tfdv_path]))
+        source=src.Source(
+            tfma=src.TfmaSource(eval_result_paths=[tfma_path]),
+            tfdv=src.TfdvSource(
+                dataset_statistics_paths=[tfdv_path],
+                features_include=['feature_name1'])))
     mc = mct.scaffold_assets()
 
     list_to_proto = lambda lst: [x.to_proto() for x in lst]
@@ -240,7 +243,7 @@ class ModelCardToolkitTest(
               graphics=model_card.GraphicsCollection(collection=[
                   model_card.Graphic(name='counts | feature_name1')
               ])), mc.model_parameters.data)
-      self.assertIn(
+      self.assertNotIn(
           model_card.Dataset(
               name=eval_dataset_name,
               graphics=model_card.GraphicsCollection(collection=[
@@ -248,8 +251,17 @@ class ModelCardToolkitTest(
               ])), mc.model_parameters.data)
 
   def test_scaffold_assets_with_empty_source(self):
-    model_card_toolkit.ModelCardToolkit(
-        source=model_card_toolkit.Source()).scaffold_assets()
+    model_card_toolkit.ModelCardToolkit(source=src.Source()).scaffold_assets()
+
+  def test_scaffold_assets_with_invalid_tfdv_source(self):
+    with self.assertRaisesWithLiteralMatch(
+        ValueError, 'Only one of TfdvSource.features_include and '
+        'TfdvSource.features_exclude should be set.'):
+      model_card_toolkit.ModelCardToolkit(
+          source=src.Source(
+              tfdv=src.TfdvSource(
+                  features_include=['brand_confidence'],
+                  features_exclude=['brand_prominence'])))
 
   def test_update_model_card_with_valid_model_card(self):
     mct = model_card_toolkit.ModelCardToolkit(output_dir=self.tmpdir)
